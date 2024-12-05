@@ -1,0 +1,160 @@
+---
+title: "D2A3"
+author: "Layla"
+date: "2024-11-20"
+output: html_document
+---
+
+## **Glynn County** (Brunswick)
+
+```{r echo=F, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(sf)
+library(dplyr)
+library(terra)
+counties_data <- readRDS("data/counties-1.RDS")
+states_data <- readRDS("data/states-1.RDS")
+atl <- states_data %>% 
+  filter(STATE_NAME == "Georgia")
+
+```
+
+## 1. Introduction 
+### 1.1. Learning about Glynn County (Brunswick)
+
+Glynn County, located in southeastern Georgia, is well-known for its rich history and thriving tourism industry. Visitors go to Brunswick and the nearby Golden Isles to enjoy the area’s natural beauty and outdoor activities. As of July 2023, the county’s population is estimated at 86,172, reflecting a 2.0% growth since 2020. Ecotourism is on the rise here, with destinations like the Okefenokee National Wildlife Refuge and the county's stunning beaches and marshlands drawing nature enthusiasts, like me! In 2017, Glynn County's economy saw 594 million from the accommodation and food services sector. This demonstrates the area’s appeal as a tourist and the influence it has in the local economy. In Brunswick, the median household income is just $29,781—much lower than the county average and about 30.8% of residents live below the poverty line. This economic disparity is one of the key challenges facing the community ^[https://www.census.gov/quickfacts/fact/table/brunswickcitygeorgia,glynncountygeorgia/HEA775223#HEA775223]. Brunswick has a diverse population with the majority of people being black people at 60.2%, White 26.8%, Hispanic 10.8%, Asian 0.8% and Other at 1.3% ^[https://www.geostat.org/data/brunswick-ga/race]. Glynn County has significant environmental health challenges due to its industrial past. The county is home to four federal Superfund sites—LCP Chemicals, Terry Creek, Hercules 009 Landfill, and Brunswick Wood Preserving. These sites are the site of severe contamination from hazardous substances ^[https://www.gpb.org/news/2023/09/25/study-shows-high-exposure-pcbs-in-brunswick]. 
+
+
+According to First Coast News article the community in Glynn is concerned over environmental disasters, including fires and explosions at chemical plants and the presence of four federal Superfund sites in Glynn County. This has resulted in residents advocating for greater industry accountability. This source demonstrates the community's proactive stance in seeking accountability. Showing that the residents' are aware of their situation and looking to activism for solutions
+ ^[https://www.firstcoastnews.com/article/entertainment/television/programs/gmj/glynn-countys-toxic-legacy-community-members-industry-accountability/77-960ad601-dd22-4681-94b0-15be41b16677]. "A closer look: Glynn's Superfund sites" provides an in-depth examination of Glynn County's four Superfund sites, giving their history, contamination issues, and current cleanup efforts. Glynn Environmental Coalition currently has efforts in educating residents about these sites depicting the community's efforts to mitigate these issues through education and advocacy ^[https://thecurrentga.org/2024/01/18/next-steps-discussed-for-study-of-brunswick-pollutants/]. The article "Researchers ask to expand study of Brunswick pollutants' effects on residents" by The Current discusses a study conducted by Emory University researchers who found elevated levels of toxins in the blood of Brunswick residents living near industrial sites. Long-term residents of Brunswick have elevated levels of hazardous chemicals in their blood, including PCBs, lead, mercury, arsenic, and toxaphene. Some participants had contaminant levels comparable to the top 5% most exposed Americans ^[https://www.firstcoastnews.com/article/tech/science/environment/brunswick-residents-blood-contains-hazardous-chemicals-many-times-higher-than-average-american-study-shows/77-67400219-4688-48e5-91c0-4f19ba07ad1d]. 
+
+### 1.2. A map that showing Glynn County's location within the state of Georgia.
+
+```{r echo=F}
+atl_sf <- st_as_sf(atl)
+
+glynn_geom <- counties_data %>%
+  filter(NAME == "Glynn")
+glynn_sf <- st_as_sf(glynn_geom)
+
+ggplot() +
+  geom_sf(data = atl_sf, fill = "lightgray", color = "black") + # Georgia outline
+  geom_sf(data = glynn_sf, fill = "red", color = "black") +     # Highlight Glynn County
+  theme_minimal() +
+  labs(title = "Glynn County (Brunswick) in Georgia",
+       subtitle = "Highlighted in red") +
+  coord_sf()
+```
+
+This map shows the state of Georgia, with Glynn County (including Brunswick) highlighted in red. The county is located in the southeastern part of the state along the coast. This visualization  emphasizes the county's coastal position, which is significant for its ecological, economic, and environmental characteristics.
+
+## 2. Land Use Mapping 
+
+### **Map of recent land use**
+
+```{r echo=F}
+land_use_2023 <- rast("data/y2023/clipped.TIF") 
+plot(land_use_2023, main = "Glynn County Land Use 2023")
+```
+
+The map illustrates the land use distribution in Glynn County, Georgia, for 2023. The map displays various land cover types including: corn, cotton, soybeans, and peanuts, deciduous, evergreen, and mixed forests. The dominate land cover is Wetlands and both woody and herbaceous forests. Developed areas, shown in gray, are concentrated around urban centers and along waterways. The map also shows water features, with rivers and other hydrological areas marked in dark blue.
+
+### **Map of land use change for impervious surfaces **
+
+I am tracking the shift in impervious cover through comparison of the maps from 2008 and 2023 side by side. What has been categorized as impervious are the following land use categories: developed/open space, developed/Low intensity, developed/Medium intensity, developed/High intensity.
+
+```{r echo=F}
+land_use_2008 <- rast("data/y2008/clipped.TIF") 
+par(mfrow = c(1,2))
+plot(land_use_2008, main = "Glynn County Land Use 2008")
+plot(land_use_2023, main = "Glynn County Land Use 2023")
+
+
+land_use_2008 <- as.numeric(land_use_2008) 
+land_use_2023 <- as.numeric(land_use_2023)
+
+y08_reclass <- ifel(land_use_2008 %in% 121:124, 1, 0) 
+y23_reclass <- ifel(land_use_2023 %in% 121:124, 1, 0)
+
+par(mfrow = c(1,2))
+plot(y08_reclass, main = "Glynn County Urbanization in 2008")
+plot(y23_reclass, main = "Glynn County Urbanization in 2023")
+
+```
+
+This set of maps compares land use and urbanization in Glynn County between 2008 and 2023, demonstrating the changes over time.
+
+The top row shows land use categories for both years. In 2008, the county features a mix of natural ecosystems like wetlands, forests, and agricultural areas, while Wetlands and forested areas are still dominant. By 2023, natural areas still remain prominent, though there is a shift with slightly more development in urban regions.
+
+The bottom row focuses on only urbanization, with yellow areas representing urban development. Between 2008 and 2023, urbanization has clearly expanded, particularly around the central and southeastern portions of the county, while some de-urbanization has occurred in the northwestern region of the urban area. This growth highlights the increasing human population in the region and indicates an increase in impervious surfaces. 
+
+### **Map of land use change through time for multiple land use categories**
+
+```{r echo=F}
+library(foreign)
+
+dbf_2008 <- read.dbf("./data/y2008/clipped.TIF.vat.dbf")
+
+ggplot(data = dbf_2008) +
+  geom_bar(aes(x = reorder(Class_Name, desc(Count)), y = Count), stat = "identity") +
+  xlab("Land use category") + ylab("Count of pixels") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ggtitle("land use in Glynn 2008")
+
+dbf_2023 <- read.dbf("./data/y2023/clipped.TIF.vat.dbf")
+
+ggplot(data = dbf_2023) +
+  geom_bar(aes(x = reorder(Class_Name, desc(Count)), y = Count), stat = "identity") +
+  xlab("Land use category") + ylab("Count of pixels") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ggtitle("Land use in Glynn 2023")
+```
+
+These bar graphs compare the distribution of land use categories in Glynn County between 2008 and 2023. In both years, herbaceous wetlands and woody wetlands dominate the landscape. Other significant land use categories include evergreen forests and open water. Over time, there appears to be some shifts in land use patterns, such as an increase in developed land. Additionally in 2008 the single dominate land category is herbaceous wetlands, while in 2023 the forest has shifted into an evergreen forest. This indicates that there was forest disruption. In forest succession pines come before hardwoods, and we see the number of woody wetlands fall behind evergreen forests. This clearly displays the disruption that the forest in Glynn County have experienced. The graphs also show smaller areas dedicated to agriculture, such as corn, cotton, and peanuts, which remain relatively consistent across both years.
+
+### **Map of Urbanization and De-Urbanization across 2008-2023**
+
+I am creating a map that changes in urbanization in Glynn County over time (2008-2023), with areas categorized as urbanization, de-urbanization, or no change. 
+
+```{r echo=F, message=FALSE, }
+diff <- y23_reclass-y08_reclass
+
+our_cats <- data.frame(value = c(1, 0, -1), lulc = c("Urbanization", "No change", "De-urbanization"))
+levels(diff) <- our_cats
+plot(diff, col = c("green", "white", "gray"), main = "Map of Urbanization and De-Urbanization across 2008-2023")
+
+```
+
+This map shows the changes in urbanization across Glynn County over time (2008-2023), with areas categorized into urbanization, de-urbanization, and no change. Urbanized areas, shown in gray, reflection the expansion of infrastructure primarily near urban centers. De-urbanized areas, marked in green, represent places where previously urbanized land has reverted to non-urban use, potentially due to abandoned developments. This is something unique about this county, as it isn't often to find a larger amount of land being de-urbanized. 
+
+Urbanization comes with significant environmental implications, particularly related to runoff and pollution. This is especially relevant when we think about Glynn county's history of industrialized contamination. Increased development leads to more impermeable surfaces that prevent water from naturally soaking into the ground. Rainfall in urban areas will pick up pollutants, including toxic substances from industrial sites. In Glynn County, where there are already four Superfund sites and a history of industrial contamination, this runoff can increase the spread of hazardous materials that can find its way into water used by the people living in this area.
+
+## 3. Reflection and Implications 
+### We will spend time in class on 10/23 discussing the investigations of the other members of your county. How did these conversations change your own investigation? 
+
+Before meeting in class I wasn’t sure which land use categories would be most relevant for me to focus on. Through talking with my group and comparing our visualizations, it helped me identify that looking into impervious surfaces could help me gain a greater understanding of the runoff and how toxic substances are effecting the people of this county. My group also helped me think about how to prioritize visualizations that effectively show changes in impermeable surfaces and their implications for runoff and pollution.
+
+### Based on your understanding of the data, what are three questions you would like to ask current residents of your county that would help tell the story of your visualizations? 
+
+* How do you think urbanization has affected the natural wetlands and forests especially as developed land increases?
+* Have local people noticed any changes in water quality or flooding patterns in areas where urbanization has increased?
+* How do local people feel about the current cleanup efforts at the Superfund sites, and do you think more needs to be done to address the contamination ?
+
+### 2 legitimate sources discussing potential links between the environmental challenge you explored and the land use changes you visualized.
+
+"Impacts of Urbanization on Stream Water Quantity and Quality in the United States" 
+
+https://www.srs.fs.usda.gov/pubs/ja/2015/ja_2015_sun_002.pdf
+
+This study looks into urbanization, and how increases in impervious surfaces, leading to higher volumes of storm water runoff. The runoff then transports pollutants into water systems. As seen in my visualizations above Glynn county has an abundance of water systems and and increase in impervious surfaces making this source especially relevant. The research highlights that watersheds with substantial impervious areas can experience a doubling of runoff after urbanization. This surge in runoff can mobilize contaminants from industrial sites.
+
+"Urbanization Effects on Watershed Hydrology and In-Stream Processes in the Southern United States" 
+
+https://www.mdpi.com/2073-4441/2/3/605
+
+This article looks into how urban development near wetlands diminishes their capacity to filter pollutants. Wetlands are a natural buffers, and tend to mitigate contamination by trapping and breaking down pollutants. Urbanization can often lead to the loss of wetlands and reduce there filtering behavior. In Glynn County, where wetlands are a predominant land cover, ongoing urban development threatens their ability to filter water and protect people and the environment
+
+
+
